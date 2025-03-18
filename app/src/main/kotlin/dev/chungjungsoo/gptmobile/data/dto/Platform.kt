@@ -12,5 +12,6 @@ data class Platform(
     val model: String? = null,
     val temperature: Float? = null,
     val topP: Float? = null,
-    val systemPrompt: String? = null
+    val systemPrompt: String? = null,
+    val maxToken: Int? = 4096
 )

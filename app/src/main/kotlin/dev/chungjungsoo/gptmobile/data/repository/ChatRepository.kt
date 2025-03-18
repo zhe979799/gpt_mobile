@@ -11,6 +11,7 @@ interface ChatRepository {
     suspend fun completeAnthropicChat(question: Message, history: List<Message>): Flow<ApiState>
     suspend fun completeGoogleChat(question: Message, history: List<Message>): Flow<ApiState>
     suspend fun completeGroqChat(question: Message, history: List<Message>): Flow<ApiState>
+    suspend fun completeDeepSeekChat(question: Message, history: List<Message>): Flow<ApiState>
     suspend fun completeOllamaChat(question: Message, history: List<Message>): Flow<ApiState>
     suspend fun fetchChatList(): List<ChatRoom>
     suspend fun fetchMessages(chatId: Int): List<Message>

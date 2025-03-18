@@ -21,6 +21,7 @@ class SettingRepositoryImpl @Inject constructor(
             ApiType.GOOGLE -> settingDataSource.getAPIUrl(apiType) ?: ModelConstants.GOOGLE_API_URL
             ApiType.GROQ -> settingDataSource.getAPIUrl(apiType) ?: ModelConstants.GROQ_API_URL
             ApiType.OLLAMA -> settingDataSource.getAPIUrl(apiType) ?: ""
+            ApiType.DEEPSEEK -> settingDataSource.getAPIUrl(apiType) ?: ModelConstants.DEEPSEEK_API_URL
         }
         val token = settingDataSource.getToken(apiType)
         val model = settingDataSource.getModel(apiType)
@@ -32,6 +33,7 @@ class SettingRepositoryImpl @Inject constructor(
             ApiType.GOOGLE -> settingDataSource.getSystemPrompt(ApiType.GOOGLE) ?: ModelConstants.DEFAULT_PROMPT
             ApiType.GROQ -> settingDataSource.getSystemPrompt(ApiType.GROQ) ?: ModelConstants.DEFAULT_PROMPT
             ApiType.OLLAMA -> settingDataSource.getSystemPrompt(ApiType.OLLAMA) ?: ModelConstants.DEFAULT_PROMPT
+            ApiType.DEEPSEEK -> settingDataSource.getSystemPrompt(ApiType.DEEPSEEK) ?: ModelConstants.DEEPSEEK_PROMPT
         }
 
         Platform(

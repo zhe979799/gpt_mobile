@@ -71,6 +71,10 @@ dependencies {
     implementation(libs.androidx.ui.tooling.preview)
     implementation(libs.androidx.material3)
 
+    // Lombok 配置
+    compileOnly("org.projectlombok:lombok:1.18.32")
+    annotationProcessor("org.projectlombok:lombok:1.18.32")
+
     // SplashScreen
     implementation(libs.splashscreen)
 
@@ -105,6 +109,7 @@ dependencies {
 
     // OpenAI (Ktor required)
     implementation(libs.openai)
+    implementation(libs.opensdk)
 
     // Room
     implementation(libs.room)

@@ -28,6 +28,9 @@ data class Message(
     @ColumnInfo(name = "content")
     val content: String,
 
+    @ColumnInfo(name = "reasoning_content")
+    val reasoningContent: String,
+
     @ColumnInfo(name = "image_data")
     val imageData: String? = null,
 

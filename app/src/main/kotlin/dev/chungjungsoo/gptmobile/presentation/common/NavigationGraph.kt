@@ -229,6 +229,7 @@ fun NavGraphBuilder.settingNavigation(navController: NavHostController) {
                         ApiType.GOOGLE -> navController.navigate(Route.GOOGLE_SETTINGS)
                         ApiType.GROQ -> navController.navigate(Route.GROQ_SETTINGS)
                         ApiType.OLLAMA -> navController.navigate(Route.OLLAMA_SETTINGS)
+                        ApiType.DEEPSEEK -> navController.navigate(Route.DEEPSEEK_SETTINGS)
                     }
                 },
                 onNavigateToAboutPage = { navController.navigate(Route.ABOUT_PAGE) }
@@ -282,6 +283,16 @@ fun NavGraphBuilder.settingNavigation(navController: NavHostController) {
             PlatformSettingScreen(
                 settingViewModel = settingViewModel,
                 apiType = ApiType.OLLAMA
+            ) { navController.navigateUp() }
+        }
+        composable(Route.DEEPSEEK_SETTINGS) {
+            val parentEntry = remember(it) {
+                navController.getBackStackEntry(Route.SETTING_ROUTE)
+            }
+            val settingViewModel: SettingViewModel = hiltViewModel(parentEntry)
+            PlatformSettingScreen(
+                settingViewModel = settingViewModel,
+                apiType = ApiType.DEEPSEEK
             ) { navController.navigateUp() }
         }
         composable(Route.ABOUT_PAGE) {

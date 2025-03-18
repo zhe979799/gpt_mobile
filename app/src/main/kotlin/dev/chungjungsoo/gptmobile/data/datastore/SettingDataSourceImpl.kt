@@ -22,6 +22,7 @@ class SettingDataSourceImpl @Inject constructor(
         ApiType.ANTHROPIC to booleanPreferencesKey("anthropic_status"),
         ApiType.GOOGLE to booleanPreferencesKey("google_status"),
         ApiType.GROQ to booleanPreferencesKey("groq_status"),
+        ApiType.DEEPSEEK to booleanPreferencesKey("deepseek_status"),
         ApiType.OLLAMA to booleanPreferencesKey("ollama_status")
     )
     private val apiUrlMap = mapOf(
@@ -29,6 +30,7 @@ class SettingDataSourceImpl @Inject constructor(
         ApiType.ANTHROPIC to stringPreferencesKey("anthropic_url"),
         ApiType.GOOGLE to stringPreferencesKey("google_url"),
         ApiType.GROQ to stringPreferencesKey("groq_url"),
+        ApiType.DEEPSEEK to stringPreferencesKey("deepseek_url"),
         ApiType.OLLAMA to stringPreferencesKey("ollama_url")
     )
     private val apiTokenMap = mapOf(
@@ -36,6 +38,7 @@ class SettingDataSourceImpl @Inject constructor(
         ApiType.ANTHROPIC to stringPreferencesKey("anthropic_token"),
         ApiType.GOOGLE to stringPreferencesKey("google_token"),
         ApiType.GROQ to stringPreferencesKey("groq_token"),
+        ApiType.DEEPSEEK to stringPreferencesKey("deepseek_token"),
         ApiType.OLLAMA to stringPreferencesKey("ollama_token")
     )
     private val apiModelMap = mapOf(
@@ -43,6 +46,7 @@ class SettingDataSourceImpl @Inject constructor(
         ApiType.ANTHROPIC to stringPreferencesKey("anthropic_model"),
         ApiType.GOOGLE to stringPreferencesKey("google_model"),
         ApiType.GROQ to stringPreferencesKey("groq_model"),
+        ApiType.DEEPSEEK to stringPreferencesKey("deepseek_model"),
         ApiType.OLLAMA to stringPreferencesKey("ollama_model")
     )
     private val apiTemperatureMap = mapOf(
@@ -50,6 +54,7 @@ class SettingDataSourceImpl @Inject constructor(
         ApiType.ANTHROPIC to floatPreferencesKey("anthropic_temperature"),
         ApiType.GOOGLE to floatPreferencesKey("google_temperature"),
         ApiType.GROQ to floatPreferencesKey("groq_temperature"),
+        ApiType.DEEPSEEK to floatPreferencesKey("deepseek_temperature"),
         ApiType.OLLAMA to floatPreferencesKey("ollama_temperature")
     )
     private val apiTopPMap = mapOf(
@@ -57,6 +62,7 @@ class SettingDataSourceImpl @Inject constructor(
         ApiType.ANTHROPIC to floatPreferencesKey("anthropic_top_p"),
         ApiType.GOOGLE to floatPreferencesKey("google_top_p"),
         ApiType.GROQ to floatPreferencesKey("groq_top_p"),
+        ApiType.DEEPSEEK to floatPreferencesKey("deepseek_top_p"),
         ApiType.OLLAMA to floatPreferencesKey("ollama_top_p")
     )
     private val apiSystemPromptMap = mapOf(
@@ -64,6 +70,7 @@ class SettingDataSourceImpl @Inject constructor(
         ApiType.ANTHROPIC to stringPreferencesKey("anthropic_system_prompt"),
         ApiType.GOOGLE to stringPreferencesKey("google_system_prompt"),
         ApiType.GROQ to stringPreferencesKey("groq_system_prompt"),
+        ApiType.DEEPSEEK to stringPreferencesKey("deepseek_system_prompt"),
         ApiType.OLLAMA to stringPreferencesKey("ollama_system_prompt")
     )
     private val dynamicThemeKey = intPreferencesKey("dynamic_mode")

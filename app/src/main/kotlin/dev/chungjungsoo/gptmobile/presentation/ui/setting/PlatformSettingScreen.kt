@@ -84,6 +84,7 @@ fun PlatformSettingScreen(
             val enabled = platform?.enabled == true
             val model = platform?.model
             val token = platform?.token
+            val maxToken = platform?.maxToken ?: 4096
             val temperature = platform?.temperature ?: 1F
             val topP = platform?.topP
             val systemPrompt = platform?.systemPrompt ?: when (apiType) {
@@ -92,6 +93,7 @@ fun PlatformSettingScreen(
                 ApiType.GOOGLE -> ModelConstants.DEFAULT_PROMPT
                 ApiType.GROQ -> ModelConstants.DEFAULT_PROMPT
                 ApiType.OLLAMA -> ModelConstants.DEFAULT_PROMPT
+                ApiType.DEEPSEEK -> ModelConstants.DEEPSEEK_PROMPT
             }
 
             PreferenceSwitchWithContainer(
@@ -102,7 +104,7 @@ fun PlatformSettingScreen(
                 modifier = Modifier.height(64.dp),
                 title = stringResource(R.string.api_url),
                 description = url,
-                enabled = enabled && platform.name != ApiType.GOOGLE,
+                enabled = enabled && platform?.name != ApiType.GOOGLE,
                 onItemClick = settingViewModel::openApiUrlDialog,
                 showTrailingIcon = false,
                 showLeadingIcon = true,
@@ -140,6 +142,21 @@ fun PlatformSettingScreen(
                     Icon(
                         ImageVector.vectorResource(id = R.drawable.ic_model),
                         contentDescription = stringResource(R.string.model_icon)
+                    )
+                }
+            )
+            SettingItem(
+                modifier = Modifier.height(64.dp),
+                title = stringResource(R.string.max_token),
+                description = maxToken.toString(),
+                enabled = enabled,
+                onItemClick = settingViewModel::openTemperatureDialog,
+                showTrailingIcon = false,
+                showLeadingIcon = true,
+                leadingIcon = {
+                    Icon(
+                        ImageVector.vectorResource(id = R.drawable.ic_temperature),
+                        contentDescription = stringResource(R.string.temperature_icon)
                     )
                 }
             )

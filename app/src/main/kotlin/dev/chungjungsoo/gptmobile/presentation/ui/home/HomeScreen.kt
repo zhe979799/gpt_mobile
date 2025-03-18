@@ -418,6 +418,7 @@ private fun SelectPlatformDialogPreview() {
         Platform(ApiType.ANTHROPIC, enabled = false),
         Platform(ApiType.GOOGLE, enabled = false),
         Platform(ApiType.GROQ, enabled = true),
+        Platform(ApiType.DEEPSEEK, enabled = true),
         Platform(ApiType.OLLAMA, enabled = true)
     )
     SelectPlatformDialog(

@@ -24,6 +24,7 @@ object Route {
     const val ANTHROPIC_SETTINGS = "anthropic_settings"
     const val GOOGLE_SETTINGS = "google_settings"
     const val GROQ_SETTINGS = "groq_settings"
+    const val DEEPSEEK_SETTINGS = "deepseek_settings"
     const val OLLAMA_SETTINGS = "ollama_settings"
     const val ABOUT_PAGE = "about"
     const val LICENSE = "license"

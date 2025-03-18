@@ -18,6 +18,7 @@ androidxHilt = "1.2.0"
 navigation = "2.8.4"
 markdown = "0.5.4"
 openai = "3.8.2"
+opensdk = "0.19.5"
 serialization = "1.7.3" # Should not update due to kotlin version
 splashscreen = "1.0.1"
 room = "2.6.1"
@@ -54,6 +55,7 @@ ktor-engine = { group = "io.ktor", name = "ktor-client-okhttp", version.ref = "k
 ktor-logging = { group = "io.ktor", name = "ktor-client-logging-jvm", version.ref = "ktor" }
 ktor-serialization = { group = "io.ktor", name = "ktor-serialization-kotlinx-json", version.ref = "ktor" }
 openai = { group = "com.aallam.openai", name = "openai-client", version.ref = "openai" }
+opensdk = { group = "com.theokanning.openai-gpt3-java-ultron", name = "service", version.ref = "opensdk" }
 splashscreen = { group = "androidx.core", name = "core-splashscreen", version.ref = "splashscreen" }
 room = { group = "androidx.room", name = "room-runtime", version.ref = "room" }
 room-compiler = { group = "androidx.room", name = "room-compiler", version.ref = "room" }

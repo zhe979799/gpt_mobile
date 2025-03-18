@@ -59,7 +59,7 @@ class ChatViewModel @Inject constructor(
     val question: StateFlow<String> = _question.asStateFlow()
 
     // Used for passing user question to Edit User Message Dialog
-    private val _editedQuestion = MutableStateFlow(Message(chatId = chatRoomId, content = "", platformType = null))
+    private val _editedQuestion = MutableStateFlow(Message(chatId = chatRoomId, content = "", reasoningContent = "", platformType = null))
     val editedQuestion = _editedQuestion.asStateFlow()
 
     // Loading state for each platforms
@@ -74,6 +74,9 @@ class ChatViewModel @Inject constructor(
 
     private val _groqLoadingState = MutableStateFlow<LoadingState>(LoadingState.Idle)
     val groqLoadingState = _groqLoadingState.asStateFlow()
+
+    private val _deepseekLoadingState = MutableStateFlow<LoadingState>(LoadingState.Idle)
+    val deepseekLoadingState = _deepseekLoadingState.asStateFlow()
 
     private val _ollamaLoadingState = MutableStateFlow<LoadingState>(LoadingState.Idle)
     val ollamaLoadingState = _ollamaLoadingState.asStateFlow()
@@ -91,26 +94,29 @@ class ChatViewModel @Inject constructor(
     val isLoaded = _isLoaded.asStateFlow()
 
     // Currently active(chat completion) user input. This is used when user input is sent.
-    private val _userMessage = MutableStateFlow(Message(chatId = chatRoomId, content = "", platformType = null))
+    private val _userMessage = MutableStateFlow(Message(chatId = chatRoomId, content = "", reasoningContent = "", platformType = null))
     val userMessage = _userMessage.asStateFlow()
 
     // Currently active(chat completion) assistant output. This is used when data is received from the API.
-    private val _openAIMessage = MutableStateFlow(Message(chatId = chatRoomId, content = "", platformType = ApiType.OPENAI))
+    private val _openAIMessage = MutableStateFlow(Message(chatId = chatRoomId, content = "", reasoningContent = "", platformType = ApiType.OPENAI))
     val openAIMessage = _openAIMessage.asStateFlow()
 
-    private val _anthropicMessage = MutableStateFlow(Message(chatId = chatRoomId, content = "", platformType = ApiType.ANTHROPIC))
+    private val _anthropicMessage = MutableStateFlow(Message(chatId = chatRoomId, content = "", reasoningContent = "", platformType = ApiType.ANTHROPIC))
     val anthropicMessage = _anthropicMessage.asStateFlow()
 
-    private val _googleMessage = MutableStateFlow(Message(chatId = chatRoomId, content = "", platformType = ApiType.GOOGLE))
+    private val _googleMessage = MutableStateFlow(Message(chatId = chatRoomId, content = "", reasoningContent = "", platformType = ApiType.GOOGLE))
     val googleMessage = _googleMessage.asStateFlow()
 
-    private val _groqMessage = MutableStateFlow(Message(chatId = chatRoomId, content = "", platformType = ApiType.GROQ))
+    private val _groqMessage = MutableStateFlow(Message(chatId = chatRoomId, content = "", reasoningContent = "", platformType = ApiType.GROQ))
     val groqMessage = _groqMessage.asStateFlow()
 
-    private val _ollamaMessage = MutableStateFlow(Message(chatId = chatRoomId, content = "", platformType = ApiType.OLLAMA))
+    private val _deepseekMessage = MutableStateFlow(Message(chatId = chatRoomId, content = "", reasoningContent = "", platformType = ApiType.DEEPSEEK))
+    val deepseekMessage = _deepseekMessage.asStateFlow()
+
+    private val _ollamaMessage = MutableStateFlow(Message(chatId = chatRoomId, content = "", reasoningContent = "", platformType = ApiType.OLLAMA))
     val ollamaMessage = _ollamaMessage.asStateFlow()
 
-    private val _geminiNanoMessage = MutableStateFlow(Message(chatId = chatRoomId, content = "", platformType = null))
+    private val _geminiNanoMessage = MutableStateFlow(Message(chatId = chatRoomId, content = "", reasoningContent = "", platformType = null))
     val geminiNanoMessage = _geminiNanoMessage.asStateFlow()
 
     // Flows for assistant message streams
@@ -118,6 +124,7 @@ class ChatViewModel @Inject constructor(
     private val anthropicFlow = MutableSharedFlow<ApiState>()
     private val googleFlow = MutableSharedFlow<ApiState>()
     private val groqFlow = MutableSharedFlow<ApiState>()
+    private val deepseekFlow = MutableSharedFlow<ApiState>()
     private val ollamaFlow = MutableSharedFlow<ApiState>()
     private val geminiNanoFlow = MutableSharedFlow<ApiState>()
 
@@ -140,7 +147,7 @@ class ChatViewModel @Inject constructor(
     fun closeChatTitleDialog() = _isChatTitleDialogOpen.update { false }
 
     fun closeEditQuestionDialog() {
-        _editedQuestion.update { Message(chatId = chatRoomId, content = "", platformType = null) }
+        _editedQuestion.update { Message(chatId = chatRoomId, content = "", reasoningContent = "", platformType = null) }
         _isEditQuestionDialogOpen.update { false }
     }
 
@@ -210,6 +217,11 @@ class ChatViewModel @Inject constructor(
                 completeGroqChat()
             }
 
+            ApiType.DEEPSEEK -> {
+                _deepseekMessage.update { it.copy(id = message.id, content = "", createdAt = currentTimeStamp) }
+                completeDeepSeekChat()
+            }
+
             ApiType.OLLAMA -> {
                 _ollamaMessage.update { it.copy(id = message.id, content = "", createdAt = currentTimeStamp) }
                 completeOllamaChat()
@@ -268,6 +280,7 @@ class ChatViewModel @Inject constructor(
         _openAIMessage.update { it.copy(id = 0, content = "") }
         _anthropicMessage.update { it.copy(id = 0, content = "") }
         _googleMessage.update { it.copy(id = 0, content = "") }
+        _deepseekMessage.update { it.copy(id = 0, content = "") }
         _groqMessage.update { it.copy(id = 0, content = "") }
         _ollamaMessage.update { it.copy(id = 0, content = "") }
     }
@@ -290,6 +303,9 @@ class ChatViewModel @Inject constructor(
 
         if (ApiType.GROQ in enabledPlatforms) {
             completeGroqChat()
+        }
+        if (ApiType.DEEPSEEK in enabledPlatforms) {
+            completeDeepSeekChat()
         }
 
         if (ApiType.OLLAMA in enabledPlatforms) {
@@ -322,6 +338,13 @@ class ChatViewModel @Inject constructor(
         viewModelScope.launch {
             val chatFlow = chatRepository.completeOllamaChat(question = _userMessage.value, history = _messages.value)
             chatFlow.collect { chunk -> ollamaFlow.emit(chunk) }
+        }
+    }
+
+    private fun completeDeepSeekChat() {
+        viewModelScope.launch {
+            val chatFlow = chatRepository.completeDeepSeekChat(question = _userMessage.value, history = _messages.value)
+            chatFlow.collect { chunk -> deepseekFlow.emit(chunk) }
         }
     }
 
@@ -404,6 +427,13 @@ class ChatViewModel @Inject constructor(
         }
 
         viewModelScope.launch {
+            ollamaFlow.handleStates(
+                messageFlow = _deepseekMessage,
+                onLoadingComplete = { updateLoadingState(ApiType.DEEPSEEK, LoadingState.Idle) }
+            )
+        }
+
+        viewModelScope.launch {
             geminiNanoFlow.handleStates(
                 messageFlow = _geminiNanoMessage,
                 onLoadingComplete = { _geminiNanoLoadingState.update { LoadingState.Idle } }
@@ -434,6 +464,7 @@ class ChatViewModel @Inject constructor(
             ApiType.GOOGLE -> _googleLoadingState
             ApiType.GROQ -> _groqLoadingState
             ApiType.OLLAMA -> _ollamaLoadingState
+            ApiType.DEEPSEEK -> _deepseekLoadingState
         }
 
         if (retryingState == LoadingState.Loading) return
@@ -445,6 +476,7 @@ class ChatViewModel @Inject constructor(
             ApiType.GOOGLE -> _googleMessage.update { message }
             ApiType.GROQ -> _groqMessage.update { message }
             ApiType.OLLAMA -> _ollamaMessage.update { message }
+            ApiType.DEEPSEEK -> _deepseekMessage.update { message }
         }
     }
 
@@ -463,6 +495,9 @@ class ChatViewModel @Inject constructor(
         if (ApiType.GOOGLE in enabledPlatforms) {
             addMessage(_googleMessage.value)
         }
+        if (ApiType.DEEPSEEK in enabledPlatforms) {
+            addMessage(_deepseekMessage.value)
+        }
 
         if (ApiType.GROQ in enabledPlatforms) {
             addMessage(_groqMessage.value)
@@ -480,6 +515,7 @@ class ChatViewModel @Inject constructor(
             ApiType.GOOGLE -> _googleLoadingState.update { loadingState }
             ApiType.GROQ -> _groqLoadingState.update { loadingState }
             ApiType.OLLAMA -> _ollamaLoadingState.update { loadingState }
+            ApiType.DEEPSEEK -> _deepseekLoadingState.update { loadingState }
         }
 
         var result = true
@@ -490,6 +526,7 @@ class ChatViewModel @Inject constructor(
                 ApiType.GOOGLE -> _googleLoadingState
                 ApiType.GROQ -> _groqLoadingState
                 ApiType.OLLAMA -> _ollamaLoadingState
+                ApiType.DEEPSEEK -> _deepseekLoadingState
             }
 
             result = result && (state.value is LoadingState.Idle)

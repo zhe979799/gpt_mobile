@@ -32,6 +32,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import dev.chungjungsoo.gptmobile.R
 import dev.chungjungsoo.gptmobile.data.ModelConstants.anthropicModels
+import dev.chungjungsoo.gptmobile.data.ModelConstants.deepseekModels
 import dev.chungjungsoo.gptmobile.data.ModelConstants.googleModels
 import dev.chungjungsoo.gptmobile.data.ModelConstants.groqModels
 import dev.chungjungsoo.gptmobile.data.ModelConstants.openaiModels
@@ -39,12 +40,7 @@ import dev.chungjungsoo.gptmobile.data.dto.APIModel
 import dev.chungjungsoo.gptmobile.data.model.ApiType
 import dev.chungjungsoo.gptmobile.presentation.common.PrimaryLongButton
 import dev.chungjungsoo.gptmobile.presentation.common.RadioItem
-import dev.chungjungsoo.gptmobile.util.generateAnthropicModelList
-import dev.chungjungsoo.gptmobile.util.generateGoogleModelList
-import dev.chungjungsoo.gptmobile.util.generateGroqModelList
-import dev.chungjungsoo.gptmobile.util.generateOpenAIModelList
-import dev.chungjungsoo.gptmobile.util.getAPIModelSelectDescription
-import dev.chungjungsoo.gptmobile.util.getAPIModelSelectTitle
+import dev.chungjungsoo.gptmobile.util.*
 
 @Composable
 fun SelectModelScreen(
@@ -62,6 +58,7 @@ fun SelectModelScreen(
         ApiType.ANTHROPIC -> generateAnthropicModelList(models = anthropicModels)
         ApiType.GOOGLE -> generateGoogleModelList(models = googleModels)
         ApiType.GROQ -> generateGroqModelList(models = groqModels)
+        ApiType.DEEPSEEK -> generateDeepseekModelList(models = deepseekModels)
         ApiType.OLLAMA -> listOf()
     }
     val defaultModel = remember {
@@ -73,6 +70,7 @@ fun SelectModelScreen(
                     ApiType.ANTHROPIC -> 0
                     ApiType.GOOGLE -> 1
                     ApiType.GROQ -> 0
+                    ApiType.DEEPSEEK -> 1
                     ApiType.OLLAMA -> 0
                 }
             )

@@ -8,20 +8,25 @@ object ModelConstants {
     val anthropicModels = linkedSetOf("claude-3-5-sonnet-20240620", "claude-3-opus-20240229", "claude-3-sonnet-20240229", "claude-3-haiku-20240307")
     val googleModels = linkedSetOf("gemini-1.5-pro-latest", "gemini-1.5-flash-latest", "gemini-1.0-pro")
     val groqModels = linkedSetOf("llama-3.2-3b-preview", "llama-3.2-1b-preview", "llama-3.1-70b-versatile", "llama-3.1-8b-instant", "gemma2-9b-it")
+    val deepseekModels = linkedSetOf("deepseek-chat", "deepseek-reasoner")
     val ollamaModels = linkedSetOf<String>()
 
     const val OPENAI_API_URL = "https://api.openai.com/v1/"
     const val ANTHROPIC_API_URL = "https://api.anthropic.com/"
     const val GOOGLE_API_URL = "https://generativelanguage.googleapis.com"
     const val GROQ_API_URL = "https://api.groq.com/openai/v1/"
+    const val DEEPSEEK_API_URL = "https://api.deepseek.ai/v1/"
 
     fun getDefaultAPIUrl(apiType: ApiType) = when (apiType) {
         ApiType.OPENAI -> OPENAI_API_URL
         ApiType.ANTHROPIC -> ANTHROPIC_API_URL
         ApiType.GOOGLE -> GOOGLE_API_URL
         ApiType.GROQ -> GROQ_API_URL
+        ApiType.DEEPSEEK -> DEEPSEEK_API_URL
         ApiType.OLLAMA -> ""
     }
+
+    const val DEFAULT_TIMEOUT = 300L;
 
     const val ANTHROPIC_MAXIMUM_TOKEN = 4096
 
@@ -31,6 +36,8 @@ object ModelConstants {
             "You are to answer my questions precisely. "
 
     const val DEFAULT_PROMPT = "Your task is to answer my questions precisely."
+
+    const val DEEPSEEK_PROMPT = "你的任务是回答问题."
 
     const val CHAT_TITLE_GENERATE_PROMPT =
         "Create a title that summarizes the chat. " +

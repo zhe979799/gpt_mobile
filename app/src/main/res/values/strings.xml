@@ -93,6 +93,7 @@
     <string name="openai_brand_text" translatable="false">Powered by OpenAI</string>
     <string name="anthropic_brand_text" translatable="false">Powered by Claude</string>
     <string name="google_brand_text" translatable="false">Powered by Gemini</string>
+    <string name="deepseek_brand_text" translatable="false">Powered by DeepSeek</string>
     <string name="token_not_set">Token not set</string>
     <string name="token_set">Token is set as %s*****</string>
     <string name="close">Close</string>
@@ -103,6 +104,7 @@
     <string name="this_operation_can_t_be_undone">This operation can\'t be undone.</string>
     <string name="system_prompt">System Prompt</string>
     <string name="temperature">Temperature</string>
+    <string name="max_token" translatable="false">MaxToken</string>
     <string name="top_p">Nucleus sampling (Top p)</string>
     <string name="system_prompt_setting">System Prompt Setting</string>
     <string name="system_prompt_description">A system prompt is a set of instructions, guidelines, and contextual information that\'s given to AI models before they interact with user queries.</string>
@@ -166,6 +168,17 @@
     <string name="gemma_2_9b" translatable="false">Gemma 2 9B 8k</string>
     <string name="llama_3_2_description">Latest Lightweight Open Source language model from Meta.</string>
     <string name="llama_3_1_description">State-of-the-art multilingual open source large language model from Meta.</string>
+    <string name="deepseek" translatable="false" >DeepSeek</string>
+    <string name="deepseek_api_key" translatable="false" >DeepSeek API Key</string>
+    <string name="deepseek_api_help" translatable="false">https://platform.deepseek.com/</string>
+    <string name="deepseek_chat" translatable="false">DeepSeek Chat</string>
+    <string name="deepseek_chat_description" translatable="false">DeepSeek is a language model that is designed to be more accurate and reliable than GPT-3.5 and GPT-4.</string>
+    <string name="deepseek_reasoner" translatable="false">DeepSeek Reasoner</string>
+    <string name="deepseek_reasoner_description" translatable="false">DeepSeek Reasoner is a language model that is designed to be more accurate and reliable than GPT-3.5 and GPT-4. It is a language model that is designed to be more accurate and reliable than GPT-3.5 and GPT-4. It is a language model that is designed to be more accurate and reliable than G</string>
+    <string name="deepseek_setting" translatable="false">DeepSeek</string>
+    <string name="select_deepseek_model" translatable="false">Select DeepSeek Chat Model</string>
+    <string name="select_deepseek_model_description" translatable="false">Please select the DeepSeek chat model. If you want models that are not on the list, check out DeepSeek API documentation website and see what\'s available.</string>
+    <string name="deepseek_description" translatable="false">DeepSeek</string>
     <string name="gemma2_description">Small Language Model released by Google.</string>
     <string name="select_groq_model">Select Groq Chat Model</string>
     <string name="select_groq_model_description">Please select the Groq chat model. If you want models that are not on the list, check out Groq API documentation website and see what\'s available.</string>

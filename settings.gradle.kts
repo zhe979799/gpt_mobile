@@ -4,6 +4,9 @@ pluginManagement {
     repositories {
         maven { url = uri("https://maven.aliyun.com/repository/public") }  // 阿里云镜像
         maven { url = uri("https://maven.aliyun.com/repository/google") }  // Google 镜像
+        maven {
+            url = uri("https://maven.oalite.com/nexus/repository/maven-dev/")
+        }
         maven { url = uri("https://jitpack.io") }
         gradlePluginPortal()
         google()
@@ -16,6 +19,9 @@ dependencyResolutionManagement {
     repositories {
         maven { url = uri("https://maven.aliyun.com/repository/public") }
         maven { url = uri("https://maven.aliyun.com/repository/google") }
+        maven {
+            url = uri("https://maven.oalite.com/nexus/repository/maven-dev/")
+        }
         maven { url = uri("https://jitpack.io") }
         google()
         mavenCentral()

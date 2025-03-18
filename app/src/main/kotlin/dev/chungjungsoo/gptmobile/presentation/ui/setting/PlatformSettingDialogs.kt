@@ -29,6 +29,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.DialogProperties
 import dev.chungjungsoo.gptmobile.R
 import dev.chungjungsoo.gptmobile.data.ModelConstants.anthropicModels
+import dev.chungjungsoo.gptmobile.data.ModelConstants.deepseekModels
 import dev.chungjungsoo.gptmobile.data.ModelConstants.getDefaultAPIUrl
 import dev.chungjungsoo.gptmobile.data.ModelConstants.googleModels
 import dev.chungjungsoo.gptmobile.data.ModelConstants.groqModels
@@ -37,13 +38,7 @@ import dev.chungjungsoo.gptmobile.data.ModelConstants.openaiModels
 import dev.chungjungsoo.gptmobile.data.model.ApiType
 import dev.chungjungsoo.gptmobile.presentation.common.RadioItem
 import dev.chungjungsoo.gptmobile.presentation.common.TokenInputField
-import dev.chungjungsoo.gptmobile.util.generateAnthropicModelList
-import dev.chungjungsoo.gptmobile.util.generateGoogleModelList
-import dev.chungjungsoo.gptmobile.util.generateGroqModelList
-import dev.chungjungsoo.gptmobile.util.generateOpenAIModelList
-import dev.chungjungsoo.gptmobile.util.getPlatformAPILabelResources
-import dev.chungjungsoo.gptmobile.util.getPlatformHelpLinkResources
-import dev.chungjungsoo.gptmobile.util.isValidUrl
+import dev.chungjungsoo.gptmobile.util.*
 import kotlin.math.roundToInt
 
 @Composable
@@ -290,6 +285,7 @@ private fun ModelDialog(
         ApiType.ANTHROPIC -> anthropicModels
         ApiType.GOOGLE -> googleModels
         ApiType.GROQ -> groqModels
+        ApiType.DEEPSEEK -> deepseekModels
         ApiType.OLLAMA -> ollamaModels
     }
     val availableModels = when (apiType) {
@@ -297,6 +293,7 @@ private fun ModelDialog(
         ApiType.ANTHROPIC -> generateAnthropicModelList(models = modelList)
         ApiType.GOOGLE -> generateGoogleModelList(models = modelList)
         ApiType.GROQ -> generateGroqModelList(models = modelList)
+        ApiType.DEEPSEEK -> generateDeepseekModelList(models = modelList)
         ApiType.OLLAMA -> listOf()
     }
     val configuration = LocalConfiguration.current

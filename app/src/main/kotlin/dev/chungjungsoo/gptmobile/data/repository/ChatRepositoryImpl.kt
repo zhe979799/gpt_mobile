@@ -9,13 +9,11 @@ import com.aallam.openai.api.model.ModelId
 import com.aallam.openai.client.OpenAI
 import com.aallam.openai.client.OpenAIHost
 import com.google.ai.client.generativeai.GenerativeModel
-import com.google.ai.client.generativeai.type.BlockThreshold
-import com.google.ai.client.generativeai.type.Content
-import com.google.ai.client.generativeai.type.GenerateContentResponse
-import com.google.ai.client.generativeai.type.HarmCategory
-import com.google.ai.client.generativeai.type.SafetySetting
-import com.google.ai.client.generativeai.type.content
-import com.google.ai.client.generativeai.type.generationConfig
+import com.google.ai.client.generativeai.type.*
+import com.theokanning.openai.client.OpenAiApi
+import com.theokanning.openai.common.StreamOption
+import com.theokanning.openai.completion.chat.ChatMessageRole
+import com.theokanning.openai.service.OpenAiService
 import dev.chungjungsoo.gptmobile.data.ModelConstants
 import dev.chungjungsoo.gptmobile.data.database.dao.ChatRoomDao
 import dev.chungjungsoo.gptmobile.data.database.dao.MessageDao
@@ -31,12 +29,15 @@ import dev.chungjungsoo.gptmobile.data.dto.anthropic.response.ErrorResponseChunk
 import dev.chungjungsoo.gptmobile.data.dto.anthropic.response.MessageResponseChunk
 import dev.chungjungsoo.gptmobile.data.model.ApiType
 import dev.chungjungsoo.gptmobile.data.network.AnthropicAPI
+import io.reactivex.Flowable
+import io.reactivex.functions.Action
+import io.reactivex.functions.Consumer
+import java.time.Duration
+import java.util.*
+import java.util.concurrent.atomic.AtomicReference
 import javax.inject.Inject
-import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.catch
-import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.flow.onCompletion
-import kotlinx.coroutines.flow.onStart
+import kotlinx.coroutines.channels.awaitClose
+import kotlinx.coroutines.flow.*
 
 class ChatRepositoryImpl @Inject constructor(
     private val appContext: Context,
@@ -47,6 +48,7 @@ class ChatRepositoryImpl @Inject constructor(
 ) : ChatRepository {
 
     private lateinit var openAI: OpenAI
+    private lateinit var deepseek: OpenAiApi
     private lateinit var google: GenerativeModel
     private lateinit var ollama: OpenAI
     private lateinit var groq: OpenAI
@@ -151,6 +153,57 @@ class ChatRepositoryImpl @Inject constructor(
             .onCompletion { emit(ApiState.Done) }
     }
 
+    override suspend fun completeDeepSeekChat(question: Message, history: List<Message>): Flow<ApiState> {
+        val platform = checkNotNull(settingRepository.fetchPlatforms().firstOrNull { it.name == ApiType.DEEPSEEK })
+
+        val customRetrofit = OpenAiService.customRetrofit(
+            OpenAiService.defaultClient(platform.token, Duration.ofSeconds(ModelConstants.DEFAULT_TIMEOUT)),
+            OpenAiService.defaultObjectMapper(),
+            platform.apiUrl
+        )
+        deepseek = customRetrofit.create(OpenAiApi::class.java)
+
+        val generatedMessages = convertMessagesToChatMessages(ApiType.OPENAI, history + listOf(question))
+        val generatedMessageWithPrompt = listOf(
+            com.theokanning.openai.completion.chat.ChatMessage(ChatMessageRole.SYSTEM.value(), platform.systemPrompt ?: ModelConstants.DEEPSEEK_PROMPT)
+        ) + generatedMessages
+
+        val chatCompletionRequest = com.theokanning.openai.completion.chat.ChatCompletionRequest.builder()
+            .model(platform.model ?: "")
+            .messages(generatedMessageWithPrompt)
+            .topP((platform.topP ?: 1.0) as Double?)
+            .temperature((platform.temperature ?: 1.0) as Double?)
+            .maxTokens(platform.maxToken)
+            .stream(true)
+            .streamOption(StreamOption.builder().includeUsage(true).build())
+            .build()
+
+        val flowable = OpenAiService.stream<com.theokanning.openai.completion.chat.ChatCompletionChunk>(deepseek.createChatCompletionStream(chatCompletionRequest), com.theokanning.openai.completion.chat.ChatCompletionChunk::class.java)
+
+        return flowableToFlow(flowable)
+            .map<com.theokanning.openai.completion.chat.ChatCompletionChunk, ApiState> { chunk ->
+                val message = chunk.choices.firstOrNull()?.message
+                val content = message?.content ?: ""
+                if (content.isEmpty()) {
+                    ApiState.Success(message?.reasoningContent ?: "")
+                } else {
+                    ApiState.Success(content)
+                }
+            }
+            .catch { throwable -> emit(ApiState.Error(throwable.message ?: "Unknown error")) }
+            .onStart { emit(ApiState.Loading) }
+            .onCompletion { emit(ApiState.Done) }
+    }
+
+    fun flowableToFlow(flowable: Flowable<com.theokanning.openai.completion.chat.ChatCompletionChunk>): Flow<com.theokanning.openai.completion.chat.ChatCompletionChunk> = callbackFlow {
+        val disposable = flowable.subscribe(
+            { data -> trySend(data) },  // 发送数据
+            { error -> close(error) },                             // 发送异常
+            { close() }                                            // 完成信号
+        )
+        awaitClose { disposable.dispose() }  // 确保取消订阅
+    }
+
     override suspend fun completeOllamaChat(question: Message, history: List<Message>): Flow<ApiState> {
         val platform = checkNotNull(settingRepository.fetchPlatforms().firstOrNull { it.name == ApiType.OLLAMA })
         ollama = OpenAI(platform.token ?: "", host = OpenAIHost(baseUrl = "${platform.apiUrl}v1/"))
@@ -219,6 +272,34 @@ class ChatRepositoryImpl @Inject constructor(
 
     override suspend fun deleteChats(chatRooms: List<ChatRoom>) {
         chatRoomDao.deleteChatRooms(*chatRooms.toTypedArray())
+    }
+
+    // 核心转换函数
+    fun convertMessagesToChatMessages(apiType: ApiType, messages: List<Message>): List<com.theokanning.openai.completion.chat.ChatMessage> {
+        return messages.map { message ->
+            val chatMessage = com.theokanning.openai.completion.chat.ChatMessage(
+                mapPlatformTypeToRole(apiType, message.platformType),
+                message.content
+            )
+            chatMessage
+        }
+    }
+
+    // 平台类型到角色映射
+    private fun mapPlatformTypeToRole(apiType: ApiType, platformType: ApiType?): String {
+        return when (platformType) {
+            null -> {
+                ChatMessageRole.USER.value()
+            }
+
+            apiType -> {
+                ChatMessageRole.ASSISTANT.value()
+            }
+
+            else -> {
+                ""
+            }
+        }
     }
 
     private fun messageToOpenAICompatibleMessage(apiType: ApiType, messages: List<Message>): List<ChatMessage> {

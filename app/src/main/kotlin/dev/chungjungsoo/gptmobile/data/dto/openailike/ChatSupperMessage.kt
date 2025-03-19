@@ -1,11 +1,7 @@
 package dev.chungjungsoo.gptmobile.data.dto.openailike
 
 import com.aallam.openai.api.chat.Tool
-import com.fasterxml.jackson.annotation.JsonInclude
-import com.fasterxml.jackson.annotation.JsonProperty
-import com.fasterxml.jackson.databind.annotation.JsonDeserialize
-import com.fasterxml.jackson.databind.annotation.JsonSerialize
-import kotlin.jvm.JvmOverloads
+import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
 /**
@@ -20,11 +16,11 @@ data class ChatSupperMessage(
     val role: String?,
     val content: String?,
     val name: String?,
-    @JsonProperty("reasoning_content")
+    @SerialName("reasoning_content")
     val reasoningContent: String?,
-    @JsonProperty("tool_calls")
+    @SerialName("tool_calls")
     val toolCalls: List<Tool>?,
-    @JsonProperty("tool_call_id")
+    @SerialName("tool_call_id")
     val toolCallId: String?
     ) {
     // 自动处理空值序列化（通过 JsonInclude）

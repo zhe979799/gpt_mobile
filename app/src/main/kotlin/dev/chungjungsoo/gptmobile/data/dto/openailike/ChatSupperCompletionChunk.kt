@@ -1,7 +1,6 @@
 package dev.chungjungsoo.gptmobile.data.dto.openailike
 
 import com.aallam.openai.api.core.Usage
-import java.util.List
 import kotlinx.serialization.Serializable
 
 /**

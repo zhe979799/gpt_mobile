@@ -150,7 +150,7 @@ class ChatRepositoryImpl @Inject constructor(
         openAiLikeApi.setToken(platform.token)
         openAiLikeApi.setAPIUrl(platform.apiUrl)
 
-        val generatedMessages = messageToOpenAICompatibleMessage(ApiType.OPENAI, history + listOf(question))
+        val generatedMessages = messageToOpenAICompatibleMessage(ApiType.DEEPSEEK, history + listOf(question))
         val generatedMessageWithPrompt = listOf(
             ChatMessage(role = ChatRole.System, content = platform.systemPrompt ?: ModelConstants.OPENAI_PROMPT)
         ) + generatedMessages
@@ -164,11 +164,10 @@ class ChatRepositoryImpl @Inject constructor(
             .map<ChatSupperCompletionChunk, ApiState> {
                 chunk ->
                 val message = chunk.choices.getOrNull(0)?.message
-                Log.e("deepseek", "chunk: $chunk")
-                if (message?.content?.isEmpty() == true) {
-                    ApiState.Success(message.reasoningContent ?:"")
-                } else {
-                    ApiState.Success(message?.content ?:"")
+                when {
+                    message == null -> ApiState.Success("")
+                    message.reasoningContent != null -> ApiState.Success(message.reasoningContent)
+                    else -> ApiState.Success(message.content ?:"")
                 }
             }
             .catch { throwable -> emit(ApiState.Error(throwable.message ?: "Unknown error")) }

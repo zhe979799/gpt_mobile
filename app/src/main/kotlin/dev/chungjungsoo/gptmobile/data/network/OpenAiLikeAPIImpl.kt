@@ -15,13 +15,11 @@ import io.ktor.utils.io.ByteReadChannel
 import io.ktor.utils.io.cancel
 import io.ktor.utils.io.readUTF8Line
 import javax.inject.Inject
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.FlowCollector
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.isActive
-import kotlinx.coroutines.withContext
 import kotlinx.serialization.json.*
 
 class OpenAiLikeAPIImpl @Inject constructor(

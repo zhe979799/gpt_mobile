@@ -1,6 +1,7 @@
 package dev.chungjungsoo.gptmobile.data.repository
 
 import android.content.Context
+import android.util.Log
 import com.aallam.openai.api.chat.ChatCompletionChunk
 import com.aallam.openai.api.chat.ChatCompletionRequest
 import com.aallam.openai.api.chat.ChatMessage
@@ -10,10 +11,6 @@ import com.aallam.openai.client.OpenAI
 import com.aallam.openai.client.OpenAIHost
 import com.google.ai.client.generativeai.GenerativeModel
 import com.google.ai.client.generativeai.type.*
-import com.theokanning.openai.client.OpenAiApi
-import com.theokanning.openai.common.StreamOption
-import com.theokanning.openai.completion.chat.ChatMessageRole
-import com.theokanning.openai.service.OpenAiService
 import dev.chungjungsoo.gptmobile.data.ModelConstants
 import dev.chungjungsoo.gptmobile.data.database.dao.ChatRoomDao
 import dev.chungjungsoo.gptmobile.data.database.dao.MessageDao
@@ -27,16 +24,11 @@ import dev.chungjungsoo.gptmobile.data.dto.anthropic.request.MessageRequest
 import dev.chungjungsoo.gptmobile.data.dto.anthropic.response.ContentDeltaResponseChunk
 import dev.chungjungsoo.gptmobile.data.dto.anthropic.response.ErrorResponseChunk
 import dev.chungjungsoo.gptmobile.data.dto.anthropic.response.MessageResponseChunk
+import dev.chungjungsoo.gptmobile.data.dto.openailike.ChatSupperCompletionChunk
 import dev.chungjungsoo.gptmobile.data.model.ApiType
 import dev.chungjungsoo.gptmobile.data.network.AnthropicAPI
-import io.reactivex.Flowable
-import io.reactivex.functions.Action
-import io.reactivex.functions.Consumer
-import java.time.Duration
-import java.util.*
-import java.util.concurrent.atomic.AtomicReference
+import dev.chungjungsoo.gptmobile.data.network.OpenAiLikeAPI
 import javax.inject.Inject
-import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.*
 
 class ChatRepositoryImpl @Inject constructor(
@@ -44,11 +36,11 @@ class ChatRepositoryImpl @Inject constructor(
     private val chatRoomDao: ChatRoomDao,
     private val messageDao: MessageDao,
     private val settingRepository: SettingRepository,
-    private val anthropic: AnthropicAPI
+    private val anthropic: AnthropicAPI,
+    private val openAiLikeApi: OpenAiLikeAPI
 ) : ChatRepository {
 
     private lateinit var openAI: OpenAI
-    private lateinit var deepseek: OpenAiApi
     private lateinit var google: GenerativeModel
     private lateinit var ollama: OpenAI
     private lateinit var groq: OpenAI
@@ -155,53 +147,33 @@ class ChatRepositoryImpl @Inject constructor(
 
     override suspend fun completeDeepSeekChat(question: Message, history: List<Message>): Flow<ApiState> {
         val platform = checkNotNull(settingRepository.fetchPlatforms().firstOrNull { it.name == ApiType.DEEPSEEK })
+        openAiLikeApi.setToken(platform.token)
+        openAiLikeApi.setAPIUrl(platform.apiUrl)
 
-        val customRetrofit = OpenAiService.customRetrofit(
-            OpenAiService.defaultClient(platform.token, Duration.ofSeconds(ModelConstants.DEFAULT_TIMEOUT)),
-            OpenAiService.defaultObjectMapper(),
-            platform.apiUrl
-        )
-        deepseek = customRetrofit.create(OpenAiApi::class.java)
-
-        val generatedMessages = convertMessagesToChatMessages(ApiType.OPENAI, history + listOf(question))
+        val generatedMessages = messageToOpenAICompatibleMessage(ApiType.OPENAI, history + listOf(question))
         val generatedMessageWithPrompt = listOf(
-            com.theokanning.openai.completion.chat.ChatMessage(ChatMessageRole.SYSTEM.value(), platform.systemPrompt ?: ModelConstants.DEEPSEEK_PROMPT)
+            ChatMessage(role = ChatRole.System, content = platform.systemPrompt ?: ModelConstants.OPENAI_PROMPT)
         ) + generatedMessages
-
-        val chatCompletionRequest = com.theokanning.openai.completion.chat.ChatCompletionRequest.builder()
-            .model(platform.model ?: "")
-            .messages(generatedMessageWithPrompt)
-            .topP((platform.topP ?: 1.0) as Double?)
-            .temperature((platform.temperature ?: 1.0) as Double?)
-            .maxTokens(platform.maxToken)
-            .stream(true)
-            .streamOption(StreamOption.builder().includeUsage(true).build())
-            .build()
-
-        val flowable = OpenAiService.stream<com.theokanning.openai.completion.chat.ChatCompletionChunk>(deepseek.createChatCompletionStream(chatCompletionRequest), com.theokanning.openai.completion.chat.ChatCompletionChunk::class.java)
-
-        return flowableToFlow(flowable)
-            .map<com.theokanning.openai.completion.chat.ChatCompletionChunk, ApiState> { chunk ->
-                val message = chunk.choices.firstOrNull()?.message
-                val content = message?.content ?: ""
-                if (content.isEmpty()) {
-                    ApiState.Success(message?.reasoningContent ?: "")
+        val chatCompletionRequest = ChatCompletionRequest(
+            model = ModelId(platform.model ?: ""),
+            messages = generatedMessageWithPrompt,
+            temperature = platform.temperature?.toDouble(),
+            topP = platform.topP?.toDouble()
+        )
+        return openAiLikeApi.streamChatMessage(chatCompletionRequest)
+            .map<ChatSupperCompletionChunk, ApiState> {
+                chunk ->
+                val message = chunk.choices.getOrNull(0)?.message
+                Log.e("deepseek", "chunk: $chunk")
+                if (message?.content?.isEmpty() == true) {
+                    ApiState.Success(message.reasoningContent ?:"")
                 } else {
-                    ApiState.Success(content)
+                    ApiState.Success(message?.content ?:"")
                 }
             }
             .catch { throwable -> emit(ApiState.Error(throwable.message ?: "Unknown error")) }
             .onStart { emit(ApiState.Loading) }
             .onCompletion { emit(ApiState.Done) }
-    }
-
-    fun flowableToFlow(flowable: Flowable<com.theokanning.openai.completion.chat.ChatCompletionChunk>): Flow<com.theokanning.openai.completion.chat.ChatCompletionChunk> = callbackFlow {
-        val disposable = flowable.subscribe(
-            { data -> trySend(data) },  // 发送数据
-            { error -> close(error) },                             // 发送异常
-            { close() }                                            // 完成信号
-        )
-        awaitClose { disposable.dispose() }  // 确保取消订阅
     }
 
     override suspend fun completeOllamaChat(question: Message, history: List<Message>): Flow<ApiState> {
@@ -272,34 +244,6 @@ class ChatRepositoryImpl @Inject constructor(
 
     override suspend fun deleteChats(chatRooms: List<ChatRoom>) {
         chatRoomDao.deleteChatRooms(*chatRooms.toTypedArray())
-    }
-
-    // 核心转换函数
-    fun convertMessagesToChatMessages(apiType: ApiType, messages: List<Message>): List<com.theokanning.openai.completion.chat.ChatMessage> {
-        return messages.map { message ->
-            val chatMessage = com.theokanning.openai.completion.chat.ChatMessage(
-                mapPlatformTypeToRole(apiType, message.platformType),
-                message.content
-            )
-            chatMessage
-        }
-    }
-
-    // 平台类型到角色映射
-    private fun mapPlatformTypeToRole(apiType: ApiType, platformType: ApiType?): String {
-        return when (platformType) {
-            null -> {
-                ChatMessageRole.USER.value()
-            }
-
-            apiType -> {
-                ChatMessageRole.ASSISTANT.value()
-            }
-
-            else -> {
-                ""
-            }
-        }
     }
 
     private fun messageToOpenAICompatibleMessage(apiType: ApiType, messages: List<Message>): List<ChatMessage> {

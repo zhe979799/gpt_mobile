@@ -55,7 +55,6 @@ ktor-engine = { group = "io.ktor", name = "ktor-client-okhttp", version.ref = "k
 ktor-logging = { group = "io.ktor", name = "ktor-client-logging-jvm", version.ref = "ktor" }
 ktor-serialization = { group = "io.ktor", name = "ktor-serialization-kotlinx-json", version.ref = "ktor" }
 openai = { group = "com.aallam.openai", name = "openai-client", version.ref = "openai" }
-opensdk = { group = "com.theokanning.openai-gpt3-java-ultron", name = "service", version.ref = "opensdk" }
 splashscreen = { group = "androidx.core", name = "core-splashscreen", version.ref = "splashscreen" }
 room = { group = "androidx.room", name = "room-runtime", version.ref = "room" }
 room-compiler = { group = "androidx.room", name = "room-compiler", version.ref = "room" }

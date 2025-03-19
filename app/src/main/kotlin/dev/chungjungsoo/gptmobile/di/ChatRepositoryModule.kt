@@ -9,6 +9,7 @@ import dagger.hilt.components.SingletonComponent
 import dev.chungjungsoo.gptmobile.data.database.dao.ChatRoomDao
 import dev.chungjungsoo.gptmobile.data.database.dao.MessageDao
 import dev.chungjungsoo.gptmobile.data.network.AnthropicAPI
+import dev.chungjungsoo.gptmobile.data.network.OpenAiLikeAPI
 import dev.chungjungsoo.gptmobile.data.repository.ChatRepository
 import dev.chungjungsoo.gptmobile.data.repository.ChatRepositoryImpl
 import dev.chungjungsoo.gptmobile.data.repository.SettingRepository
@@ -25,6 +26,7 @@ object ChatRepositoryModule {
         chatRoomDao: ChatRoomDao,
         messageDao: MessageDao,
         settingRepository: SettingRepository,
-        anthropicAPI: AnthropicAPI
-    ): ChatRepository = ChatRepositoryImpl(appContext, chatRoomDao, messageDao, settingRepository, anthropicAPI)
+        anthropicAPI: AnthropicAPI,
+        openAiLikeApi: OpenAiLikeAPI
+    ): ChatRepository = ChatRepositoryImpl(appContext, chatRoomDao, messageDao, settingRepository, anthropicAPI, openAiLikeApi)
 }

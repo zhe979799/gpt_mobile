@@ -13,6 +13,7 @@ import dev.chungjungsoo.gptmobile.data.repository.ChatRepository
 import dev.chungjungsoo.gptmobile.data.repository.SettingRepository
 import dev.chungjungsoo.gptmobile.util.handleStates
 import javax.inject.Inject
+import kotlin.reflect.full.isSubclassOf
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -427,7 +428,7 @@ class ChatViewModel @Inject constructor(
         }
 
         viewModelScope.launch {
-            ollamaFlow.handleStates(
+            deepseekFlow.handleStates(
                 messageFlow = _deepseekMessage,
                 onLoadingComplete = { updateLoadingState(ApiType.DEEPSEEK, LoadingState.Idle) }
             )
@@ -467,7 +468,7 @@ class ChatViewModel @Inject constructor(
             ApiType.DEEPSEEK -> _deepseekLoadingState
         }
 
-        if (retryingState == LoadingState.Loading) return
+        if (retryingState::class.isSubclassOf(LoadingState.Loading::class)) return
         if (message == null) return
 
         when (apiType) {

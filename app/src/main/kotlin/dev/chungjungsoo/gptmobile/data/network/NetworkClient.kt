@@ -39,6 +39,8 @@ class NetworkClient @Inject constructor(
 
             install(HttpTimeout) {
                 requestTimeoutMillis = TIMEOUT.toLong()
+                socketTimeoutMillis = SOCKET_TIMEOUT.toLong()
+                connectTimeoutMillis = CONNECTION_TIMEOUT.toLong()
             }
 
             install(Logging) {
@@ -57,5 +59,9 @@ class NetworkClient @Inject constructor(
 
     companion object {
         private const val TIMEOUT = 1_000 * 60 * 5
+
+        private const val SOCKET_TIMEOUT = 1_000 * 30
+
+        private const val CONNECTION_TIMEOUT = 1_000 * 10
     }
 }

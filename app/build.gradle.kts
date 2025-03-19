@@ -107,9 +107,11 @@ dependencies {
     implementation(libs.hilt.navigation)
     implementation(libs.androidx.navigation)
 
+    implementation("com.fasterxml.jackson.module:jackson-module-kotlin:2.13.0")
+    implementation("com.fasterxml.jackson.core:jackson-databind:2.13.0")
+
     // OpenAI (Ktor required)
     implementation(libs.openai)
-    implementation(libs.opensdk)
 
     // Room
     implementation(libs.room)

@@ -15,7 +15,7 @@ object ModelConstants {
     const val ANTHROPIC_API_URL = "https://api.anthropic.com/"
     const val GOOGLE_API_URL = "https://generativelanguage.googleapis.com"
     const val GROQ_API_URL = "https://api.groq.com/openai/v1/"
-    const val DEEPSEEK_API_URL = "https://api.deepseek.ai/v1/"
+    const val DEEPSEEK_API_URL = "https://api.deepseek.com/v1/"
 
     fun getDefaultAPIUrl(apiType: ApiType) = when (apiType) {
         ApiType.OPENAI -> OPENAI_API_URL

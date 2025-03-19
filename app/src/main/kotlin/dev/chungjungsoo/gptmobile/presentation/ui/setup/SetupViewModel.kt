@@ -29,6 +29,7 @@ class SetupViewModel @Inject constructor(private val settingRepository: SettingR
             Platform(ApiType.ANTHROPIC),
             Platform(ApiType.GOOGLE),
             Platform(ApiType.GROQ),
+            Platform(ApiType.DEEPSEEK),
             Platform(ApiType.OLLAMA)
         )
     )

@@ -81,6 +81,7 @@
     <string name="enable_api">Enable API</string>
     <string name="api_key">API Key</string>
     <string name="api_model">API Model</string>
+    <string name="web_search" translatable="false">Web Search Model</string>
     <string name="dynamic_theme">Dynamic Theme</string>
     <string name="dark_mode">Dark Mode</string>
     <string name="key_icon">Key Icon</string>

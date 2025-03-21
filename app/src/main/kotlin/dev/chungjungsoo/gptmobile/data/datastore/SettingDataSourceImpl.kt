@@ -73,6 +73,24 @@ class SettingDataSourceImpl @Inject constructor(
         ApiType.DEEPSEEK to stringPreferencesKey("deepseek_system_prompt"),
         ApiType.OLLAMA to stringPreferencesKey("ollama_system_prompt")
     )
+
+    private val apiMaxTokenMap = mapOf(
+        ApiType.OPENAI to intPreferencesKey("openai_max_tokens"),
+        ApiType.ANTHROPIC to intPreferencesKey("anthropic_max_tokens"),
+        ApiType.GOOGLE to intPreferencesKey("google_max_tokens"),
+        ApiType.GROQ to intPreferencesKey("groq_max_tokens"),
+        ApiType.DEEPSEEK to intPreferencesKey("deepseek_max_tokens"),
+        ApiType.OLLAMA to intPreferencesKey("ollama_max_tokens")
+    )
+
+    private val apiWebSearchMap = mapOf(
+        ApiType.OPENAI to stringPreferencesKey("openai_web_search"),
+        ApiType.ANTHROPIC to stringPreferencesKey("anthropic_web_search"),
+        ApiType.GOOGLE to stringPreferencesKey("google_web_search"),
+        ApiType.GROQ to stringPreferencesKey("groq_web_search"),
+        ApiType.DEEPSEEK to stringPreferencesKey("deepseek_web_search"),
+        ApiType.OLLAMA to stringPreferencesKey("ollama_web_search")
+    )
     private val dynamicThemeKey = intPreferencesKey("dynamic_mode")
     private val themeModeKey = intPreferencesKey("theme_mode")
 
@@ -172,5 +190,25 @@ class SettingDataSourceImpl @Inject constructor(
 
     override suspend fun getSystemPrompt(apiType: ApiType): String? = dataStore.data.map { pref ->
         pref[apiSystemPromptMap[apiType]!!]
+    }.first()
+
+    override suspend fun updateWebSearchModel(name: ApiType, model: String) {
+        dataStore.edit { pref ->
+            pref[apiWebSearchMap[name]!!] = model
+        }
+    }
+
+    override suspend fun getWebSearchModel(name: ApiType): String? = dataStore.data.map { pref ->
+        pref[apiWebSearchMap[name]!!]
+    }.first()
+
+    override suspend fun updateMaxTokens(apiType: ApiType, maxTokens: Int) {
+        dataStore.edit { pref ->
+            pref[apiMaxTokenMap[apiType]!!] = maxTokens
+        }
+    }
+
+    override suspend fun getMaxTokens(apiType: ApiType): Int? = dataStore.data.map { pref ->
+        pref[apiMaxTokenMap[apiType]!!]
     }.first()
 }

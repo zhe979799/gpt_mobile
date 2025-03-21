@@ -37,6 +37,8 @@ object ModelConstants {
 
     const val DEFAULT_PROMPT = "Your task is to answer my questions precisely."
 
+    const val DEFAULT_WEBSEARCH_PROMPT = "你的任务是基于问题进行搜索，不需要解答用户问题，通过搜索回答"
+
     const val DEEPSEEK_PROMPT = "你的任务是回答问题."
 
     const val CHAT_TITLE_GENERATE_PROMPT =

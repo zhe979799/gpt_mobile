@@ -101,6 +101,22 @@ class SettingViewModel @Inject constructor(
         }
     }
 
+    fun updateWebsearch(apiType: ApiType, model: String) {
+        val index = _platformState.value.indexOfFirst { it.name == apiType }
+
+        if (index >= 0) {
+            _platformState.update {
+                it.mapIndexed { i, p ->
+                    if (index == i) {
+                        p.copy(webSearchModel = model)
+                    } else {
+                        p
+                    }
+                }
+            }
+        }
+    }
+
     fun updateTemperature(apiType: ApiType, temperature: Float) {
         val index = _platformState.value.indexOfFirst { it.name == apiType }
         val modifiedTemperature = when (apiType) {
@@ -162,7 +178,11 @@ class SettingViewModel @Inject constructor(
 
     fun openApiModelDialog() = _dialogState.update { it.copy(isApiModelDialogOpen = true) }
 
+    fun openWebsearchDialog() = _dialogState.update { it.copy(isWebsearchDialogOpen = true) }
+
     fun openTemperatureDialog() = _dialogState.update { it.copy(isTemperatureDialogOpen = true) }
+
+    fun openMaxTokensDialog() = _dialogState.update { it.copy(isMaxTokensDialogOpen = true) }
 
     fun openTopPDialog() = _dialogState.update { it.copy(isTopPDialogOpen = true) }
 
@@ -175,6 +195,10 @@ class SettingViewModel @Inject constructor(
     fun closeApiTokenDialog() = _dialogState.update { it.copy(isApiTokenDialogOpen = false) }
 
     fun closeApiModelDialog() = _dialogState.update { it.copy(isApiModelDialogOpen = false) }
+
+    fun closeWebsearchDialog() = _dialogState.update { it.copy(isWebsearchDialogOpen = false) }
+
+    fun closeMaxTokensDialog() = _dialogState.update { it.copy(isMaxTokensDialogOpen = false) }
 
     fun closeTemperatureDialog() = _dialogState.update { it.copy(isTemperatureDialogOpen = false) }
 
@@ -189,12 +213,30 @@ class SettingViewModel @Inject constructor(
         }
     }
 
+    fun updateMaxTokens(apiType: ApiType, newValue: Int) {
+        val index = _platformState.value.indexOfFirst { it.name == apiType }
+
+        if (index >= 0) {
+            _platformState.update {
+                it.mapIndexed { i, p ->
+                    if (index == i && newValue > 0) {
+                        p.copy(maxToken = newValue)
+                    } else {
+                        p
+                    }
+                }
+            }
+        }
+    }
+
     data class DialogState(
         val isThemeDialogOpen: Boolean = false,
         val isApiUrlDialogOpen: Boolean = false,
         val isApiTokenDialogOpen: Boolean = false,
         val isApiModelDialogOpen: Boolean = false,
         val isTemperatureDialogOpen: Boolean = false,
+        val isMaxTokensDialogOpen: Boolean = false,
+        val isWebsearchDialogOpen: Boolean = false,
         val isTopPDialogOpen: Boolean = false,
         val isSystemPromptDialogOpen: Boolean = false
     )

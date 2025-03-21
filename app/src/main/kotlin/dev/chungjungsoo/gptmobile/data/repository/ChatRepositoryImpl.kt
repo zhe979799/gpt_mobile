@@ -2,15 +2,13 @@ package dev.chungjungsoo.gptmobile.data.repository
 
 import android.content.Context
 import android.util.Log
-import com.aallam.openai.api.chat.ChatCompletionChunk
-import com.aallam.openai.api.chat.ChatCompletionRequest
-import com.aallam.openai.api.chat.ChatMessage
-import com.aallam.openai.api.chat.ChatRole
+import com.aallam.openai.api.chat.*
 import com.aallam.openai.api.model.ModelId
 import com.aallam.openai.client.OpenAI
 import com.aallam.openai.client.OpenAIHost
 import com.google.ai.client.generativeai.GenerativeModel
 import com.google.ai.client.generativeai.type.*
+import com.google.ai.client.generativeai.type.Content
 import dev.chungjungsoo.gptmobile.data.ModelConstants
 import dev.chungjungsoo.gptmobile.data.database.dao.ChatRoomDao
 import dev.chungjungsoo.gptmobile.data.database.dao.MessageDao
@@ -25,11 +23,15 @@ import dev.chungjungsoo.gptmobile.data.dto.anthropic.response.ContentDeltaRespon
 import dev.chungjungsoo.gptmobile.data.dto.anthropic.response.ErrorResponseChunk
 import dev.chungjungsoo.gptmobile.data.dto.anthropic.response.MessageResponseChunk
 import dev.chungjungsoo.gptmobile.data.dto.openailike.ChatSupperCompletionChunk
+import dev.chungjungsoo.gptmobile.data.dto.openailike.websearch.ApproximateLocation
+import dev.chungjungsoo.gptmobile.data.dto.openailike.websearch.UserLocation
+import dev.chungjungsoo.gptmobile.data.dto.openailike.websearch.WebSearchOptions
 import dev.chungjungsoo.gptmobile.data.model.ApiType
 import dev.chungjungsoo.gptmobile.data.network.AnthropicAPI
 import dev.chungjungsoo.gptmobile.data.network.OpenAiLikeAPI
 import javax.inject.Inject
 import kotlinx.coroutines.flow.*
+import kotlinx.serialization.json.*
 
 class ChatRepositoryImpl @Inject constructor(
     private val appContext: Context,
@@ -149,8 +151,14 @@ class ChatRepositoryImpl @Inject constructor(
         val platform = checkNotNull(settingRepository.fetchPlatforms().firstOrNull { it.name == ApiType.DEEPSEEK })
         openAiLikeApi.setToken(platform.token)
         openAiLikeApi.setAPIUrl(platform.apiUrl)
-
-        val generatedMessages = messageToOpenAICompatibleMessage(ApiType.DEEPSEEK, history + listOf(question))
+        val completeWebsearch = completeWebsearch(question, ApiType.DEEPSEEK)
+        var searchQuestion = question
+        if (completeWebsearch?.isNotEmpty() == true) {
+            searchQuestion = question.copy(
+                content = question.content + "\n\n###以下是搜索结果资料，酌情引用:" + completeWebsearch
+            )
+        }
+        val generatedMessages = messageToOpenAICompatibleMessage(ApiType.DEEPSEEK, history + listOf(searchQuestion))
         val generatedMessageWithPrompt = listOf(
             ChatMessage(role = ChatRole.System, content = platform.systemPrompt ?: ModelConstants.OPENAI_PROMPT)
         ) + generatedMessages
@@ -160,14 +168,28 @@ class ChatRepositoryImpl @Inject constructor(
             temperature = platform.temperature?.toDouble(),
             topP = platform.topP?.toDouble()
         )
+        var state = false
+
         return openAiLikeApi.streamChatMessage(chatCompletionRequest)
             .map<ChatSupperCompletionChunk, ApiState> {
                 chunk ->
                 val message = chunk.choices.getOrNull(0)?.message
-                when {
-                    message == null -> ApiState.Success("")
-                    message.reasoningContent != null -> ApiState.Success(message.reasoningContent)
-                    else -> ApiState.Success(message.content ?:"")
+                if (message == null) {
+                    ApiState.Success("")
+                } else if (message.reasoningContent != null) {
+                    if (!state) {
+                        state = true
+                        ApiState.Success(message.reasoningContent)
+                    }else {
+                        ApiState.Success(message.reasoningContent)
+                    }
+                } else {
+                    if (state) {
+                        state = false
+                        ApiState.Success("\n\n---\n\n" + message.content)
+                    } else {
+                        ApiState.Success(message.content ?:"")
+                    }
                 }
             }
             .catch { throwable -> emit(ApiState.Error(throwable.message ?: "Unknown error")) }
@@ -195,6 +217,49 @@ class ChatRepositoryImpl @Inject constructor(
             .catch { throwable -> emit(ApiState.Error(throwable.message ?: "Unknown error")) }
             .onStart { emit(ApiState.Loading) }
             .onCompletion { emit(ApiState.Done) }
+    }
+
+    override suspend fun completeWebsearch(question: Message,apiType: ApiType): String? {
+
+        val platform = checkNotNull(settingRepository.fetchPlatforms().firstOrNull { it.name == ApiType.OPENAI })
+        val currentPlatform = checkNotNull(settingRepository.fetchPlatforms().firstOrNull { it.name == apiType })
+        if (currentPlatform.webSearchModel == null) {
+            return ""
+        }
+        openAiLikeApi.setToken(platform.token)
+        openAiLikeApi.setAPIUrl(platform.apiUrl)
+        val generatedMessages = messageToOpenAICompatibleMessage(apiType, listOf(question))
+        val generatedMessageWithPrompt = listOf(
+            ChatMessage(role = ChatRole.System, content = ModelConstants.DEFAULT_WEBSEARCH_PROMPT)
+        ) + generatedMessages
+        val chatCompletionRequest = ChatCompletionRequest(
+            model = ModelId(currentPlatform.webSearchModel),
+            messages = generatedMessageWithPrompt,
+            temperature = platform.temperature?.toDouble(),
+            topP = platform.topP?.toDouble()
+        )
+        val json = Json { encodeDefaults = true }
+        val jsonElement = json.encodeToJsonElement(chatCompletionRequest)
+        val jsonObject = jsonElement.jsonObject.toMutableMap()
+        // 构建对象并序列化
+        val webSearchOptionJson = json.encodeToJsonElement(
+            WebSearchOptions(
+                searchContextSize = "high",
+                userLocation = UserLocation(
+                    type = "approximate",
+                    approximate = ApproximateLocation(
+                        country = "GB",
+                        city = "London",
+                        region = "London"
+                    )
+                )
+            )
+        )
+        jsonObject["web_search_options"] = webSearchOptionJson
+        Log.d("web_search", "chatCompletionRequest: $jsonObject")
+        val chatMessage = openAiLikeApi.chatMessage(JsonObject(jsonObject))
+        Log.d("web_search", "completeWebsearch: $chatMessage")
+        return chatMessage.choices.getOrNull(0)?.message?.content?:""
     }
 
     override suspend fun fetchChatList(): List<ChatRoom> = chatRoomDao.getChatRooms()

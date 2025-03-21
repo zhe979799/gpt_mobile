@@ -13,5 +13,6 @@ data class Platform(
     val temperature: Float? = null,
     val topP: Float? = null,
     val systemPrompt: String? = null,
-    val maxToken: Int? = 4096
+    val maxToken: Int? = 4096,
+    val webSearchModel: String? = null,
 )

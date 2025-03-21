@@ -1,5 +1,6 @@
 package dev.chungjungsoo.gptmobile.presentation.ui.setting
 
+import android.util.Log
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -14,12 +15,7 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Slider
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableFloatStateOf
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
+import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.res.stringResource
@@ -126,6 +122,26 @@ fun TemperatureDialog(
 }
 
 @Composable
+fun MaxTokensDialog(
+    dialogState: SettingViewModel.DialogState,
+    apiType: ApiType,
+    maxTokens: Int,
+    settingViewModel: SettingViewModel
+) {
+    if (dialogState.isMaxTokensDialogOpen) {
+        IntegerAdjustDialog(
+            apiType = apiType,
+            currentValue = maxTokens,
+            onDismissRequest = settingViewModel::closeMaxTokensDialog
+        ) { newValue ->
+            settingViewModel.updateMaxTokens(apiType, newValue)
+            settingViewModel.savePlatformSettings()
+            settingViewModel.closeMaxTokensDialog()
+        }
+    }
+}
+
+@Composable
 fun TopPDialog(
     dialogState: SettingViewModel.DialogState,
     apiType: ApiType,
@@ -140,6 +156,27 @@ fun TopPDialog(
             settingViewModel.updateTopP(apiType, p)
             settingViewModel.savePlatformSettings()
             settingViewModel.closeTopPDialog()
+        }
+    }
+}
+
+@Composable
+fun WebSearchDialog(
+    dialogState: SettingViewModel.DialogState,
+    apiType: ApiType,
+    model: String?,
+    settingViewModel: SettingViewModel
+) {
+    if (dialogState.isWebsearchDialogOpen) {
+        ModelDialog(
+            apiType = apiType,
+            initModel = model ?: "",
+            onDismissRequest = settingViewModel::closeWebsearchDialog
+        ) { m ->
+            Log.e("websearch", "WebSearchDialog: $model")
+            settingViewModel.updateWebsearch(apiType, m)
+            settingViewModel.savePlatformSettings()
+            settingViewModel.closeWebsearchDialog()
         }
     }
 }
@@ -373,6 +410,100 @@ private fun ModelDialog(
                 onClick = onDismissRequest
             ) {
                 Text(stringResource(R.string.cancel))
+            }
+        }
+    )
+}
+
+@Composable
+private fun IntegerAdjustDialog(
+    apiType: ApiType,
+    currentValue: Int,
+    onDismissRequest: () -> Unit,
+    onConfirm: (Int) -> Unit
+) {
+    val configuration = LocalConfiguration.current
+    // 根据API类型设置不同的取值范围
+    val (minValue, maxValue) = when (apiType) {
+        ApiType.DEEPSEEK -> 1 to 8192   // Anthropic的特殊范围
+        else -> 1 to 1_024 * 20              // 其他API的默认范围
+    }
+
+    var textFieldValue by remember { mutableStateOf(currentValue.toString()) }
+    var localValue by remember { mutableIntStateOf(currentValue) }
+
+    // 当外部currentValue变化时同步状态（如重新打开对话框）
+    LaunchedEffect(currentValue) {
+        localValue = currentValue.coerceIn(minValue, maxValue)
+        textFieldValue = localValue.toString()
+    }
+
+    AlertDialog(
+        properties = DialogProperties(usePlatformDefaultWidth = false),
+        modifier = Modifier
+            .widthIn(max = configuration.screenWidthDp.dp - 40.dp)
+            .heightIn(max = configuration.screenHeightDp.dp - 80.dp),
+        title = { Text("调整 ${apiType.name} 的Max Tokens") },
+        text = {
+            Column(
+                modifier = Modifier.verticalScroll(rememberScrollState())
+            ) {
+                // 说明文本
+                Text("设置生成内容的最大令牌数量。数值越大生成内容越详细，但消耗也越多。")
+
+                // 文本输入框
+                OutlinedTextField(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 20.dp, vertical = 16.dp),
+                    value = textFieldValue,
+                    onValueChange = { newText ->
+                        textFieldValue = newText
+                        newText.toIntOrNull()?.let { value ->
+                            if (value in minValue..maxValue) {
+                                localValue = value
+                            }
+                        }
+                    },
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                    label = { Text("最大令牌数") }
+                )
+
+                // 滑动条组件
+                Slider(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 20.dp, vertical = 16.dp),
+                    value = localValue.toFloat(),
+                    valueRange = minValue.toFloat()..maxValue.toFloat(),
+                    steps = maxValue - minValue - 1, // 每个整数作为一个步长
+                    onValueChange = { newValue ->
+                        val intValue = newValue.roundToInt()
+                        localValue = intValue
+                        textFieldValue = intValue.toString()
+                    }
+                )
+
+                // 实时显示当前值
+                Text(
+                    text = "当前值: $localValue",
+                    modifier = Modifier.padding(horizontal = 20.dp)
+                )
+            }
+        },
+        onDismissRequest = onDismissRequest,
+        confirmButton = {
+            TextButton(
+                onClick = { onConfirm(localValue) }
+            ) {
+                Text("确认")
+            }
+        },
+        dismissButton = {
+            TextButton(
+                onClick = onDismissRequest
+            ) {
+                Text("取消")
             }
         }
     )

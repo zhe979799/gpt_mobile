@@ -1,6 +1,7 @@
 package dev.chungjungsoo.gptmobile.data.network
 
 import android.util.Log
+import com.aallam.openai.api.chat.ChatCompletion
 import com.aallam.openai.api.chat.ChatCompletionRequest
 import dev.chungjungsoo.gptmobile.data.ModelConstants
 import dev.chungjungsoo.gptmobile.data.dto.openailike.ChatSupperCompletionChunk
@@ -8,10 +9,12 @@ import io.ktor.client.call.body
 import io.ktor.client.request.*
 import io.ktor.client.statement.HttpResponse
 import io.ktor.client.statement.HttpStatement
+import io.ktor.client.statement.content
 import io.ktor.http.ContentType
 import io.ktor.http.HttpMethod
 import io.ktor.http.contentType
 import io.ktor.utils.io.ByteReadChannel
+import io.ktor.utils.io.InternalAPI
 import io.ktor.utils.io.cancel
 import io.ktor.utils.io.readUTF8Line
 import javax.inject.Inject
@@ -62,6 +65,35 @@ class OpenAiLikeAPIImpl @Inject constructor(
                 throw Error(e.message)
             }
         }
+    }
+
+    @OptIn(InternalAPI::class)
+    override suspend fun chatMessage(messageRequest: JsonObject): ChatCompletion {
+        val builder = HttpRequestBuilder().apply {
+            method = HttpMethod.Post
+            if (apiUrl.endsWith("/")) url("${apiUrl}chat/completions") else url("$apiUrl/chat/completions")
+            contentType(ContentType.Application.Json)
+            setBody(messageRequest)
+            headers {
+                append(API_KEY_HEADER, API_KEY_PREFIX + (token ?: ""))
+            }
+        }
+        val jsonInstance = Json {
+            ignoreUnknownKeys = true  // 忽略 JSON 中多余的字段
+            explicitNulls = false     // 允许缺失字段（自动设为 null）
+        }
+        try {
+            val response = networkClient().request(builder)
+
+            return jsonInstance.decodeFromString<ChatCompletion>(response.content.readUTF8Line()?: "")
+        }  catch (e: Exception) {
+            Log.w("Network Error", "Retrying... ${e.message}")
+            throw Error(e.message)
+        }
+    }
+
+    private suspend inline fun responseBody (response: HttpResponse) {
+
     }
 
     private suspend inline fun <reified T> FlowCollector<T>.streamEventsFrom(response: HttpResponse) {

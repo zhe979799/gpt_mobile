@@ -83,6 +83,7 @@ fun PlatformSettingScreen(
             val url = platform?.apiUrl ?: ModelConstants.getDefaultAPIUrl(apiType)
             val enabled = platform?.enabled == true
             val model = platform?.model
+            val websearch = platform?.webSearchModel
             val token = platform?.token
             val maxToken = platform?.maxToken ?: 4096
             val temperature = platform?.temperature ?: 1F
@@ -150,13 +151,13 @@ fun PlatformSettingScreen(
                 title = stringResource(R.string.max_token),
                 description = maxToken.toString(),
                 enabled = enabled,
-                onItemClick = settingViewModel::openTemperatureDialog,
+                onItemClick = settingViewModel::openMaxTokensDialog,
                 showTrailingIcon = false,
                 showLeadingIcon = true,
                 leadingIcon = {
                     Icon(
                         ImageVector.vectorResource(id = R.drawable.ic_temperature),
-                        contentDescription = stringResource(R.string.temperature_icon)
+                        contentDescription = stringResource(R.string.max_token)
                     )
                 }
             )
@@ -192,6 +193,21 @@ fun PlatformSettingScreen(
             )
             SettingItem(
                 modifier = Modifier.height(64.dp),
+                title = stringResource(R.string.web_search),
+                description = websearch,
+                enabled = enabled,
+                onItemClick = settingViewModel::openWebsearchDialog,
+                showTrailingIcon = false,
+                showLeadingIcon = true,
+                leadingIcon = {
+                    Icon(
+                        ImageVector.vectorResource(id = R.drawable.ic_model),
+                        contentDescription = stringResource(R.string.model_icon)
+                    )
+                }
+            )
+            SettingItem(
+                modifier = Modifier.height(64.dp),
                 title = stringResource(R.string.system_prompt),
                 description = systemPrompt,
                 enabled = enabled,
@@ -209,8 +225,10 @@ fun PlatformSettingScreen(
             APIUrlDialog(dialogState, apiType, url, settingViewModel)
             APIKeyDialog(dialogState, apiType, settingViewModel)
             ModelDialog(dialogState, apiType, model, settingViewModel)
+            MaxTokensDialog(dialogState, apiType, maxToken, settingViewModel)
             TemperatureDialog(dialogState, apiType, temperature, settingViewModel)
             TopPDialog(dialogState, apiType, topP, settingViewModel)
+            WebSearchDialog(dialogState, apiType, websearch, settingViewModel)
             SystemPromptDialog(dialogState, apiType, systemPrompt, settingViewModel)
         }
     }

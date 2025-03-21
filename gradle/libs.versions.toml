@@ -17,7 +17,7 @@ ktor = "2.3.12"
 androidxHilt = "1.2.0"
 navigation = "2.8.4"
 markdown = "0.5.4"
-openai = "3.8.2"
+openai = "4.0.1"
 opensdk = "0.19.5"
 serialization = "1.7.3" # Should not update due to kotlin version
 splashscreen = "1.0.1"
@@ -52,6 +52,7 @@ kotlin-serialization = { group = "org.jetbrains.kotlinx", name = "kotlinx-serial
 ktor-content-negotiation = { group = "io.ktor", name = "ktor-client-content-negotiation", version.ref = "ktor" }
 ktor-core = { group = "io.ktor", name = "ktor-client-core", version.ref = "ktor" }
 ktor-engine = { group = "io.ktor", name = "ktor-client-okhttp", version.ref = "ktor" }
+ktor-plugins = { group = "io.ktor", name = "ktor-client-plugins", version.ref = "ktor" }
 ktor-logging = { group = "io.ktor", name = "ktor-client-logging-jvm", version.ref = "ktor" }
 ktor-serialization = { group = "io.ktor", name = "ktor-serialization-kotlinx-json", version.ref = "ktor" }
 openai = { group = "com.aallam.openai", name = "openai-client", version.ref = "openai" }

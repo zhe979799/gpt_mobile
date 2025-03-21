@@ -26,6 +26,8 @@ class SettingRepositoryImpl @Inject constructor(
         val token = settingDataSource.getToken(apiType)
         val model = settingDataSource.getModel(apiType)
         val temperature = settingDataSource.getTemperature(apiType)
+        val maxToken = settingDataSource.getMaxTokens(apiType)
+        val webSearchModel = settingDataSource.getWebSearchModel(apiType)
         val topP = settingDataSource.getTopP(apiType)
         val systemPrompt = when (apiType) {
             ApiType.OPENAI -> settingDataSource.getSystemPrompt(ApiType.OPENAI) ?: ModelConstants.OPENAI_PROMPT
@@ -42,6 +44,8 @@ class SettingRepositoryImpl @Inject constructor(
             apiUrl = apiUrl,
             token = token,
             model = model,
+            maxToken = maxToken,
+            webSearchModel = webSearchModel,
             temperature = temperature,
             topP = topP,
             systemPrompt = systemPrompt
@@ -60,6 +64,8 @@ class SettingRepositoryImpl @Inject constructor(
 
             platform.token?.let { settingDataSource.updateToken(platform.name, it) }
             platform.model?.let { settingDataSource.updateModel(platform.name, it) }
+            platform.maxToken?.let { settingDataSource.updateMaxTokens(platform.name, it) }
+            platform.webSearchModel?.let { settingDataSource.updateWebSearchModel(platform.name, it) }
             platform.temperature?.let { settingDataSource.updateTemperature(platform.name, it) }
             platform.topP?.let { settingDataSource.updateTopP(platform.name, it) }
             platform.systemPrompt?.let { settingDataSource.updateSystemPrompt(platform.name, it.trim()) }

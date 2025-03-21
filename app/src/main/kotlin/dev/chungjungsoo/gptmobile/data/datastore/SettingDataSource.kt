@@ -23,4 +23,8 @@ interface SettingDataSource {
     suspend fun getTemperature(apiType: ApiType): Float?
     suspend fun getTopP(apiType: ApiType): Float?
     suspend fun getSystemPrompt(apiType: ApiType): String?
+    suspend fun updateWebSearchModel(name: ApiType, model: String)
+    suspend fun getWebSearchModel(name: ApiType): String?
+    suspend fun updateMaxTokens(apiType: ApiType, maxTokens: Int)
+    suspend fun getMaxTokens(apiType: ApiType): Int?
 }

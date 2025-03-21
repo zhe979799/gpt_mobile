@@ -93,6 +93,7 @@ dependencies {
     implementation(libs.ktor.content.negotiation)
     implementation(libs.ktor.core)
     implementation(libs.ktor.engine)
+    implementation(libs.ktor.plugins)
     implementation(libs.ktor.logging)
     implementation(libs.ktor.serialization)
 

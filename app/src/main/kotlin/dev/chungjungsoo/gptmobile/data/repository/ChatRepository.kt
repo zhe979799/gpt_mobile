@@ -3,6 +3,7 @@ package dev.chungjungsoo.gptmobile.data.repository
 import dev.chungjungsoo.gptmobile.data.database.entity.ChatRoom
 import dev.chungjungsoo.gptmobile.data.database.entity.Message
 import dev.chungjungsoo.gptmobile.data.dto.ApiState
+import dev.chungjungsoo.gptmobile.data.model.ApiType
 import kotlinx.coroutines.flow.Flow
 
 interface ChatRepository {
@@ -13,6 +14,7 @@ interface ChatRepository {
     suspend fun completeGroqChat(question: Message, history: List<Message>): Flow<ApiState>
     suspend fun completeDeepSeekChat(question: Message, history: List<Message>): Flow<ApiState>
     suspend fun completeOllamaChat(question: Message, history: List<Message>): Flow<ApiState>
+    suspend fun completeWebsearch(question: Message, apiType: ApiType): String?
     suspend fun fetchChatList(): List<ChatRoom>
     suspend fun fetchMessages(chatId: Int): List<Message>
     fun generateDefaultChatTitle(messages: List<Message>): String?

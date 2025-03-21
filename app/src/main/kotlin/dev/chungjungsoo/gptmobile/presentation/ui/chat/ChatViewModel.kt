@@ -337,7 +337,7 @@ class ChatViewModel @Inject constructor(
 
     private fun completeOllamaChat() {
         viewModelScope.launch {
-            val chatFlow = chatRepository.completeOllamaChat(question = _userMessage.value, history = _messages.value)
+            val chatFlow = chatRepository.completeDeepSeekChat(question = _userMessage.value, history = _messages.value)
             chatFlow.collect { chunk -> ollamaFlow.emit(chunk) }
         }
     }
